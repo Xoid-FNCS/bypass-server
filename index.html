@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Web Proxy</title>
+    <title>Web Proxy</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,7 +56,8 @@
         document.getElementById('loadButton').addEventListener('click', () => {
             const url = document.getElementById('urlInput').value;
             if (url) {
-                document.getElementById('webFrame').src = url.startsWith('http') ? url : 'http://' + url;
+                const proxyUrl = `/proxy?target=${encodeURIComponent(url)}`;
+                document.getElementById('webFrame').src = proxyUrl;
             }
         });
     </script>
