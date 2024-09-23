@@ -9,20 +9,9 @@ app.use(cors());
 
 // Proxy middleware
 app.use('/proxy', createProxyMiddleware({
-    target: 'http://example.com', // This will be overridden by the query parameter
     changeOrigin: true,
-    pathRewrite: {
-        '^/proxy': '', // Remove /proxy from the request path
-    },
-    onProxyReq: (proxyReq, req) => {
-        const targetUrl = req.query.target;
-        if (targetUrl) {
-            proxyReq.setHeader('Host', new URL(targetUrl).host);
-            proxyReq.path = targetUrl;
-        }
-    },
     onProxyRes: function (proxyRes) {
-        // Modify response headers to evade blockers
+        // Modify response headers
         proxyRes.headers['Access-Control-Allow-Origin'] = '*';
         delete proxyRes.headers['X-Frame-Options'];
         delete proxyRes.headers['Content-Security-Policy'];
@@ -36,6 +25,16 @@ app.use('/proxy', createProxyMiddleware({
 // Serve the main page
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
+});
+
+// Handle requests to open the specified URL in a new tab
+app.get('/open', (req, res) => {
+    const targetUrl = req.query.url;
+    if (targetUrl) {
+        res.redirect(`/proxy?target=${encodeURIComponent(targetUrl)}`);
+    } else {
+        res.status(400).send('URL is required');
+    }
 });
 
 // Start the server
