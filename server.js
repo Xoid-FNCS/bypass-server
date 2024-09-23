@@ -1,29 +1,28 @@
 const express = require('express');
-const request = require('request');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-// Middleware to parse URL-encoded bodies
-app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname));
 
-// Proxy route
-app.post('/proxy', (req, res) => {
-    const url = req.body.url;
-    
-    if (!url) {
-        return res.status(400).send('URL is required');
-    }
-
-    // Make a request to the provided URL
-    request(url, (error, response, body) => {
-        if (error) {
-            return res.status(500).send('Error fetching the URL');
+app.use('/proxy', createProxyMiddleware({
+    target: '',
+    changeOrigin: true,
+    pathRewrite: {
+        '^/proxy': '',
+    },
+    onProxyReq: (proxyReq, req) => {
+        const url = req.query.url;
+        if (url) {
+            proxyReq.setHeader('Host', new URL(url).host);
+            proxyReq.setHeader('Referer', url);
         }
-        res.send(body);
-    });
-});
+    },
+    onError: (err, req, res) => {
+        res.status(500).send('Proxy error');
+    }
+}));
 
-// Start the server
 app.listen(port, () => {
     console.log(`Proxy server listening at http://localhost:${port}`);
 });
