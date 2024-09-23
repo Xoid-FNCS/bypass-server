@@ -9,8 +9,18 @@ app.use(cors());
 
 // Proxy middleware
 app.use('/proxy', createProxyMiddleware({
-    target: 'http://example.com', // Default target
+    target: 'http://example.com', // This will be overridden by the query parameter
     changeOrigin: true,
+    pathRewrite: {
+        '^/proxy': '', // Remove /proxy from the request path
+    },
+    onProxyReq: (proxyReq, req) => {
+        const targetUrl = req.query.target;
+        if (targetUrl) {
+            proxyReq.setHeader('Host', new URL(targetUrl).host);
+            proxyReq.path = targetUrl;
+        }
+    },
     onProxyRes: function (proxyRes) {
         // Modify response headers to evade blockers
         proxyRes.headers['Access-Control-Allow-Origin'] = '*';
