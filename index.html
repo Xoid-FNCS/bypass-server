@@ -38,26 +38,18 @@
         button:hover {
             background-color: #0056b3;
         }
-
-        iframe {
-            width: 100%;
-            height: 80vh;
-            border: none;
-        }
     </style>
 </head>
 <body>
     <h1>Web Proxy</h1>
     <input type="text" id="urlInput" placeholder="Enter URL (e.g., https://snapchat.com)">
-    <button id="loadButton">Load URL</button>
-    <iframe id="webFrame" src=""></iframe>
+    <button id="loadButton">Open URL</button>
 
     <script>
         document.getElementById('loadButton').addEventListener('click', () => {
             const url = document.getElementById('urlInput').value;
             if (url) {
-                const proxyUrl = `/proxy?target=${encodeURIComponent(url)}`;
-                document.getElementById('webFrame').src = proxyUrl;
+                window.open(`/open?url=${encodeURIComponent(url)}`, '_blank');
             }
         });
     </script>
