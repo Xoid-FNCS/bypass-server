@@ -9,8 +9,15 @@ app.use(cors());
 
 // Proxy middleware
 app.use('/proxy', createProxyMiddleware({
+    target: '', // Placeholder for the target URL
     changeOrigin: true,
-    onProxyRes: function (proxyRes) {
+    pathRewrite: {
+        '^/proxy': '', // Remove /proxy from the request path
+    },
+    onProxyReq: (proxyReq, req, res) => {
+        // Modify the proxy request if needed
+    },
+    onProxyRes: (proxyRes) => {
         // Modify response headers
         proxyRes.headers['Access-Control-Allow-Origin'] = '*';
         delete proxyRes.headers['X-Frame-Options'];
@@ -31,7 +38,14 @@ app.get('/', (req, res) => {
 app.get('/open', (req, res) => {
     const targetUrl = req.query.url;
     if (targetUrl) {
-        res.redirect(`/proxy?target=${encodeURIComponent(targetUrl)}`);
+        // Update the target URL in the proxy configuration
+        createProxyMiddleware({
+            target: targetUrl,
+            changeOrigin: true,
+            pathRewrite: {
+                '^/proxy': '',
+            },
+        })(req, res);
     } else {
         res.status(400).send('URL is required');
     }
@@ -39,5 +53,5 @@ app.get('/open', (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Proxy server listening at http://localhost:${port}`);
+    console.log(`Monkey Bypass server listening at http://localhost:${port}`);
 });
