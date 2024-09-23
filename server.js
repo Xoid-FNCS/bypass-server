@@ -3,10 +3,14 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.static(__dirname));
+// Serve the main page
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 
+// Proxy requests
 app.use('/proxy', createProxyMiddleware({
-    target: '',
+    target: '', // leave this empty
     changeOrigin: true,
     pathRewrite: {
         '^/proxy': '',
@@ -19,10 +23,12 @@ app.use('/proxy', createProxyMiddleware({
         }
     },
     onError: (err, req, res) => {
+        console.error('Proxy error:', err);
         res.status(500).send('Proxy error');
     }
 }));
 
+// Start the server
 app.listen(port, () => {
     console.log(`Proxy server listening at http://localhost:${port}`);
 });
