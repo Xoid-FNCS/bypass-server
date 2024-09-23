@@ -9,24 +9,21 @@ app.get('/', (req, res) => {
 });
 
 // Proxy requests
-app.use('/proxy', createProxyMiddleware({
-    target: '', // leave this empty
-    changeOrigin: true,
-    pathRewrite: {
-        '^/proxy': '',
-    },
-    onProxyReq: (proxyReq, req) => {
-        const url = req.query.url;
-        if (url) {
-            proxyReq.setHeader('Host', new URL(url).host);
-            proxyReq.setHeader('Referer', url);
-        }
-    },
-    onError: (err, req, res) => {
-        console.error('Proxy error:', err);
-        res.status(500).send('Proxy error');
+app.use('/proxy', (req, res, next) => {
+    const url = req.query.url;
+    if (!url) {
+        return res.status(400).send('No URL provided');
     }
-}));
+
+    createProxyMiddleware({
+        target: url,
+        changeOrigin: true,
+        onError: (err, req, res) => {
+            console.error('Proxy error:', err);
+            res.status(500).send('Proxy error');
+        }
+    })(req, res, next);
+});
 
 // Start the server
 app.listen(port, () => {
